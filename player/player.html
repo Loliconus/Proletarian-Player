@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<!--
+  ОБОЗНАЧЕНИЕ : PP.PL.01
+  НАИМЕНОВАНИЕ: Страница плеера
+  ДОКУМЕНТ    : Текст программы (ГОСТ 19.401-78)
+  ПРОГРАММА   : Proletarian Player
+  ВЕРСИЯ      : 1.0
+-->
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proletarian Player</title>
+  <link rel="stylesheet" href="player.css">
+</head>
+<body>
+
+<!-- =============================================================
+     Раздел 1. Зона перетаскивания файлов
+     ============================================================= -->
+<div id="dropZone" class="drop-zone active">
+  <div class="drop-content">
+    <span class="drop-icon">🎬</span>
+    <h1 class="drop-title">PROLETARIAN PLAYER</h1>
+    <p class="drop-sub">Без излишеств. Для людей.</p>
+    <div class="drop-actions">
+      <button class="drop-btn primary" id="btnOpenFile">
+        <span>📄</span> Открыть файл <span class="kbd">Ctrl+O</span>
+      </button>
+      <button class="drop-btn" id="btnOpenFolder">
+        <span>📁</span> Открыть папку <span class="kbd">Ctrl+Shift+O</span>
+      </button>
+    </div>
+    <div class="drop-hint">или перетащите файлы / папку сюда</div>
+    <div class="drop-formats">MP4 · WebM · MKV · AVI · MOV · FLV · TS · OGG</div>
+  </div>
+</div>
+
+<!-- =============================================================
+     Раздел 2. Контейнер плеера
+     ============================================================= -->
+<div id="playerWrap" class="player-wrap hidden">
+
+  <video id="video" class="video" preload="metadata"></video>
+
+  <!-- Раздел 2.1. Слой OSD (экранное отображение) -->
+  <div id="clickOverlay" class="click-overlay">
+    <div id="osdIcon" class="osd-icon hidden"></div>
+    <div id="osdTime" class="osd-time hidden"></div>
+    <div id="osdInfo" class="osd-info hidden"></div>
+    <div id="osdZoom" class="osd-zoom hidden">100%</div>
+  </div>
+
+  <!-- Раздел 2.2. Панель управления -->
+  <div id="controls" class="controls">
+
+    <!-- Прогресс-бар воспроизведения -->
+    <div class="progress-area">
+      <span id="timeCurrent" class="time-label">0:00</span>
+      <div id="progressBar" class="progress-bar">
+        <div id="progressBuffered" class="progress-buffered"></div>
+        <div id="progressFill"     class="progress-fill"></div>
+        <div id="progressHandle"   class="progress-handle"></div>
+        <div id="abLoopA"  class="ab-marker ab-a hidden"></div>
+        <div id="abLoopB"  class="ab-marker ab-b hidden"></div>
+        <div id="progressTooltip"  class="progress-tooltip hidden">0:00</div>
+      </div>
+      <span id="timeDuration" class="time-label">0:00</span>
+    </div>
+
+    <!-- Строка кнопок управления -->
+    <div class="controls-row">
+
+      <!-- Левая группа: навигация, громкость, скорость -->
+      <div class="controls-left">
+        <button id="btnPrev"      class="ctrl-btn" title="Предыдущий (B)">⏮</button>
+        <button id="btnPlayPause" class="ctrl-btn play-btn" title="Пауза / Воспроизведение (Space)">▶</button>
+        <button id="btnNext"      class="ctrl-btn" title="Следующий (N)">⏭</button>
+
+        <div class="volume-group">
+          <button id="btnMute" class="ctrl-btn" title="Без звука (M)">🔊</button>
+          <div id="volumeBar" class="volume-bar">
+            <div id="volumeFill" class="volume-fill" style="width:100%"></div>
+          </div>
+          <span id="volumeLabel" class="volume-label">100%</span>
+        </div>
+
+        <div id="speedDisplay" class="speed-display" title="Скорость ([ / ])">1.00×</div>
+      </div>
+
+      <!-- Правая группа: вид, субтитры, очередь, экран -->
+      <div class="controls-right">
+        <button id="btnAspect"     class="ctrl-btn text-btn" title="Масштаб Fit/Fill/Stretch (W)">Fit</button>
+        <button id="btnSubs"       class="ctrl-btn text-btn" title="Субтитры вкл/выкл (C)">SUB</button>
+        <button id="btnQueue"      class="ctrl-btn" title="Очередь (Q)">☰</button>
+        <button id="btnPiP"        class="ctrl-btn" title="Картинка в картинке (P)">⧉</button>
+        <button id="btnFullscreen" class="ctrl-btn" title="На весь экран (F)">⛶</button>
+        <button id="btnSettings"   class="ctrl-btn" title="Настройки">⚙</button>
+      </div>
+
+    </div>
+  </div><!-- /controls -->
+
+  <!-- Раздел 2.3. Боковая панель: очередь воспроизведения -->
+  <div id="queuePanel" class="side-panel queue-panel hidden">
+    <div class="panel-header">
+      <span class="panel-title">☰ ОЧЕРЕДЬ</span>
+      <div class="panel-header-actions">
+        <button class="panel-btn-small" id="btnQueueShuffle" title="Перемешать">⇄</button>
+        <button class="panel-btn-small" id="btnQueueLoop"    title="Повтор очереди">↺</button>
+        <button class="panel-btn-small" id="btnQueueAdd"     title="Добавить файлы">+</button>
+        <button class="panel-btn-small" id="btnQueueClose">✕</button>
+      </div>
+    </div>
+    <div id="queueList" class="queue-list"></div>
+  </div>
+
+  <!-- Раздел 2.4. Боковая панель: настройки -->
+  <div id="settingsPanel" class="side-panel settings-panel hidden">
+    <div class="panel-header">
+      <span class="panel-title">⚙ НАСТРОЙКИ</span>
+      <div class="panel-header-actions">
+        <button class="panel-btn-small" id="btnSettingsClose">✕</button>
+      </div>
+    </div>
+    <div class="settings-body">
+
+      <!-- Субтитры -->
+      <div class="settings-section">
+        <div class="settings-section-title">💬 Субтитры</div>
+        <button class="settings-action-btn" id="btnSubLoad">
+          📂 Загрузить файл <span class="kbd-inline">Ctrl+L</span>
+        </button>
+        <div class="settings-row" id="subSyncRow">
+          <span class="settings-label">Синхронизация</span>
+          <span id="subOffsetLabel" class="settings-value">0 мс</span>
+        </div>
+        <div class="settings-row-btns">
+          <button class="settings-step-btn" id="btnSubSync-500">−500</button>
+          <button class="settings-step-btn" id="btnSubSync-100">−100</button>
+          <button class="settings-step-btn" id="btnSubSyncReset">0</button>
+          <button class="settings-step-btn" id="btnSubSync+100">+100</button>
+          <button class="settings-step-btn" id="btnSubSync+500">+500</button>
+        </div>
+      </div>
+
+      <!-- Масштабирование -->
+      <div class="settings-section">
+        <div class="settings-section-title">🔍 Зум</div>
+        <div class="settings-row">
+          <span class="settings-label">Масштаб</span>
+          <span id="zoomLabel" class="settings-value">100%</span>
+        </div>
+        <div class="settings-row-btns">
+          <button class="settings-step-btn" id="btnZoomOut">−</button>
+          <button class="settings-step-btn wide" id="btnZoomReset">1:1</button>
+          <button class="settings-step-btn" id="btnZoomIn">+</button>
+        </div>
+        <div class="settings-hint">Ctrl+Scroll — зум к курсору</div>
+      </div>
+
+      <!-- Скорость воспроизведения -->
+      <div class="settings-section">
+        <div class="settings-section-title">⚡ Скорость</div>
+        <div id="speedSteps" class="speed-steps"></div>
+        <div class="settings-hint">[ / ] — шаги · \ — сброс</div>
+      </div>
+
+      <!-- Инструменты -->
+      <div class="settings-section">
+        <div class="settings-section-title">🛠 Инструменты</div>
+        <button class="settings-action-btn" id="btnScreenshot">
+          📸 Снять кадр <span class="kbd-inline">S</span>
+        </button>
+        <button class="settings-action-btn" id="btnFileInfo">
+          ℹ Инфо о файле <span class="kbd-inline">I</span>
+        </button>
+      </div>
+
+      <!-- Цикл A-B -->
+      <div class="settings-section">
+        <div class="settings-section-title">🔁 A-B Loop</div>
+        <div id="abStatus" class="ab-status">Не активен</div>
+        <div class="settings-row-btns">
+          <button class="settings-step-btn wide" id="btnSetA">A <span class="kbd-inline">A</span></button>
+          <button class="settings-step-btn wide" id="btnSetB">B <span class="kbd-inline">Z</span></button>
+          <button class="settings-step-btn wide" id="btnResetAB">Сброс</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /playerWrap -->
+
+<!-- =============================================================
+     Раздел 3. Оверлейные элементы интерфейса
+     ============================================================= -->
+
+<!-- Уведомления -->
+<div id="notifications" class="notifications"></div>
+
+<!-- Модальное окно SmartResume -->
+<div id="resumeModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title">Продолжить просмотр?</div>
+    <div class="modal-body" id="resumeText"></div>
+    <div class="modal-actions">
+      <button id="resumeYes" class="modal-btn primary">▶ Продолжить</button>
+      <button id="resumeNo"  class="modal-btn">С начала</button>
+    </div>
+  </div>
+</div>
+
+<!-- Контекстное меню очереди -->
+<div id="queueContextMenu" class="context-menu hidden">
+  <div class="ctx-item" id="ctxPlay">▶ Воспроизвести</div>
+  <div class="ctx-item ctx-danger" id="ctxRemove">✕ Удалить из очереди</div>
+</div>
+
+<!-- =============================================================
+     Раздел 4. Подключение скриптов (порядок по зависимостям)
+     ============================================================= -->
+<script src="js/helpers.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/subtitles.js"></script>
+<script src="js/zoom.js"></script>
+<script src="js/queue.js"></script>
+<script src="js/player.js"></script>
+
+</body>
+</html>

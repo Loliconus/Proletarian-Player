@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!--
+  ОБОЗНАЧЕНИЕ : PP.UI.01
+  НАИМЕНОВАНИЕ: Всплывающее окно расширения
+  ДОКУМЕНТ    : Текст программы (ГОСТ 19.401-78)
+  ПРОГРАММА   : Proletarian Player
+  ВЕРСИЯ      : 1.0
+-->
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Proletarian Player</title>
+  <style>
+    /* --- Раздел 1. Сброс и базовые стили --- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 280px;
+      background: #0f0f0f;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      user-select: none;
+    }
+
+    /* --- Раздел 2. Шапка --- */
+    .header {
+      background: #1a1a1a;
+      padding: 14px 16px;
+      border-bottom: 2px solid #cc0000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-icon  { font-size: 22px; }
+    .header-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    .header-sub { font-size: 10px; color: #666; letter-spacing: 0.05em; }
+
+    /* --- Раздел 3. Тело и кнопки --- */
+    .body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      color: #e0e0e0;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+      text-align: left;
+      width: 100%;
+    }
+    .btn:hover  { background: #2a2a2a; border-color: #cc0000; }
+    .btn:active { background: #cc0000; color: #fff; }
+
+    .btn-primary {
+      background: #cc0000;
+      border-color: #cc0000;
+      color: #fff;
+      font-weight: 600;
+    }
+    .btn-primary:hover { background: #e00000; border-color: #e00000; }
+
+    .btn-icon  { font-size: 16px; }
+    .btn-label { flex: 1; }
+    .btn-hint  { font-size: 10px; color: #555; }
+    .btn-primary .btn-hint { color: #ff9999; }
+
+    /* --- Раздел 4. Блок последнего просмотра --- */
+    .last-watched {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-left: 3px solid #cc0000;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .last-title {
+      color: #fff;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .last-meta  { color: #555; margin-top: 3px; }
+
+    .progress-bar  { height: 3px; background: #2a2a2a; border-radius: 2px; margin-top: 6px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #cc0000; border-radius: 2px; }
+
+    /* --- Раздел 5. Подвал и утилиты --- */
+    .footer { padding: 8px 12px; border-top: 1px solid #1e1e1e; font-size: 10px; color: #333; text-align: center; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Шапка -->
+  <div class="header">
+    <div class="header-icon">🎬</div>
+    <div>
+      <div class="header-title">Proletarian Player</div>
+      <div class="header-sub">Без излишеств. Для людей.</div>
+    </div>
+  </div>
+
+  <!-- Кнопки управления -->
+  <div class="body">
+    <button class="btn btn-primary" id="btnOpen">
+      <span class="btn-icon">▶</span>
+      <span class="btn-label">Открыть плеер</span>
+      <span class="btn-hint">новая вкладка</span>
+    </button>
+    <button class="btn" id="btnFile">
+      <span class="btn-icon">📄</span>
+      <span class="btn-label">Открыть файл</span>
+      <span class="btn-hint">Ctrl+O</span>
+    </button>
+    <button class="btn" id="btnFolder">
+      <span class="btn-icon">📁</span>
+      <span class="btn-label">Открыть папку</span>
+      <span class="btn-hint">Ctrl+Shift+O</span>
+    </button>
+
+    <!-- Блок последнего просмотра (скрыт до загрузки истории) -->
+    <div id="lastWatchedBlock" class="last-watched hidden">
+      <div class="last-title" id="lastTitle">—</div>
+      <div class="last-meta"  id="lastMeta">—</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="lastProgress" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">v1.0.0</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
